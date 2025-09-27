@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
@@ -24,13 +24,13 @@ function Header() {
     [settings]
   );
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!query.trim()) return;
     navigate(`/search?q=${encodeURIComponent(query.trim())}`);
   };
 
-  const handleMobileSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleMobileSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     if (event.target.value) {
       navigate(event.target.value);
       event.target.value = '';
