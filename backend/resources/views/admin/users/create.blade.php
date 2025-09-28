@@ -10,7 +10,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
-                        @include('admin.users._form')
+                        @include('admin.users._form', ['roles' => $roles])
                     </form>
                 </div>
             </div>

@@ -15,6 +15,15 @@
         @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
     <div>
+        <label for="role" class="block text-sm font-medium text-gray-700">{{ __('Role') }}</label>
+        <select id="role" name="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            @foreach ($roles as $value => $label)
+                <option value="{{ $value }}" @selected(old('role', $user->role ?? 'editor') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        @error('role')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+    <div>
         <label for="password" class="block text-sm font-medium text-gray-700">{{ $user->exists ? __('New Password (optional)') : __('Password') }}</label>
         <input id="password" name="password" type="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" {{ $user->exists ? '' : 'required' }}>
         @error('password')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror

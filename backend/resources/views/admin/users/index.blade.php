@@ -27,6 +27,7 @@
                             <tr>
                                 <th class="px-3 py-2">{{ __('Name') }}</th>
                                 <th class="px-3 py-2">{{ __('Email') }}</th>
+                                <th class="px-3 py-2">{{ __('Role') }}</th>
                                 <th class="px-3 py-2 text-right">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
@@ -35,6 +36,7 @@
                                 <tr>
                                     <td class="px-3 py-3 text-gray-900">{{ $user->name }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $user->email }}</td>
+                                    <td class="px-3 py-3 text-gray-700">{{ $roles[$user->role] ?? ucfirst($user->role) }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
                                             <a href="{{ route('admin.users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-500">{{ __('Edit') }}</a>

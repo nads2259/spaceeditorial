@@ -31,6 +31,13 @@ Initial authentication scaffolding comes from Laravel Breeze (Blade). The admin 
 
 Change these credentials after first login and regenerate the API token via Admin → Users.
 
+### User Roles
+
+- `admin` – full access, can manage other users and issues API tokens.
+- `editor` – content-focused role without API token privileges.
+
+Use the Admin → Users screen to set or update a user’s role. At least one administrator must remain in the system.
+
 ### Scheduled Content Sync
 
 - `php artisan external:sync` – sync all providers

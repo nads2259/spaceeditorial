@@ -14,16 +14,26 @@ class CategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $posts = $this->whenLoaded('posts', function () use ($request) {
+            $data = PostResource::collection($this->posts)->toArray($request);
+
+            return $data['data'] ?? $data;
+        }, []);
+
+        $subcategories = $this->whenLoaded('subcategories', function () use ($request) {
+            $data = SubcategoryResource::collection($this->subcategories)->toArray($request);
+
+            return $data['data'] ?? $data;
+        }, []);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
             'image' => $this->image_path,
-            'posts' => PostResource::collection($this->whenLoaded('posts')),
-            'subcategories' => SubcategoryResource::collection(
-                $this->whenLoaded('subcategories')
-            ),
+            'posts' => $posts,
+            'subcategories' => $subcategories,
         ];
     }
 }

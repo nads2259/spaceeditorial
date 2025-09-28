@@ -19,7 +19,7 @@
                         </div>
                     @endif
                     <form method="POST" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
-                        @include('admin.users._form')
+                        @include('admin.users._form', ['roles' => $roles])
                     </form>
                 </div>
             </div>

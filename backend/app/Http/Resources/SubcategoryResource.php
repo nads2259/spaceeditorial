@@ -14,6 +14,12 @@ class SubcategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $posts = $this->whenLoaded('posts', function () use ($request) {
+            $data = PostResource::collection($this->posts)->toArray($request);
+
+            return $data['data'] ?? $data;
+        }, []);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -21,7 +27,7 @@ class SubcategoryResource extends JsonResource
             'description' => $this->description,
             'image' => $this->image_path,
             'categorySlug' => optional($this->category)->slug,
-            'posts' => PostResource::collection($this->whenLoaded('posts')),
+            'posts' => $posts,
         ];
     }
 }
