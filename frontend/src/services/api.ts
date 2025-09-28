@@ -1,8 +1,15 @@
 import axios from 'axios';
 import type { Category, Post, SearchResponse, Settings, Subcategory } from '../types';
 
+const apiToken = import.meta.env.VITE_API_TOKEN;
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8001',
+  headers: apiToken
+    ? {
+        Authorization: `Bearer ${apiToken}`,
+      }
+    : undefined,
 });
 
 const hasFullContent = (post: Post) => {
