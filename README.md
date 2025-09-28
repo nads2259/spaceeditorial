@@ -24,6 +24,13 @@ php artisan serve --host=127.0.0.1 --port=8001
 
 Initial authentication scaffolding comes from Laravel Breeze (Blade). The admin area lives under `/admin` once you sign in.
 
+### Default Admin Access
+
+- Email: `admin@spaceeditorial.test`
+- Password: `SpaceEditorial@2025`
+
+Change these credentials after first login and regenerate the API token via Admin → Users.
+
 ### Scheduled Content Sync
 
 - `php artisan external:sync` – sync all providers
