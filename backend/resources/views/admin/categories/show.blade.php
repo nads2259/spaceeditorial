@@ -47,7 +47,7 @@
                                     <div class="font-medium text-gray-900">{{ $subcategory->name }}</div>
                                     <div class="text-sm text-gray-500">{{ $subcategory->slug }}</div>
                                 </div>
-                                <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="text-indigo-600 hover:text-indigo-500">{{ __('Manage') }}</a>
+                                <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Manage') }}</a>
                             </li>
                         @empty
                             <li class="text-sm text-gray-500">{{ __('No subcategories yet.') }}</li>
@@ -66,7 +66,7 @@
                                     <div class="font-medium text-gray-900">{{ $post->title }}</div>
                                     <div class="text-sm text-gray-500">{{ optional($post->published_at)->toFormattedDateString() }}</div>
                                 </div>
-                                <a href="{{ route('admin.posts.edit', $post) }}" class="text-indigo-600 hover:text-indigo-500">{{ __('Manage') }}</a>
+                                <a href="{{ route('admin.posts.edit', $post) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Manage') }}</a>
                             </li>
                         @empty
                             <li class="text-sm text-gray-500">{{ __('No posts yet.') }}</li>

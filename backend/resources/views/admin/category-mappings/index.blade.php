@@ -35,11 +35,11 @@
                                     <td class="px-3 py-3 text-gray-700">{{ $mapping->subcategory->name ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.category-mappings.edit', $mapping) }}" class="text-indigo-600 hover:text-indigo-500">{{ __('Edit') }}</a>
+                                            <a href="{{ route('admin.category-mappings.edit', $mapping) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
                                             <form method="POST" action="{{ route('admin.category-mappings.destroy', $mapping) }}" onsubmit="return confirm('{{ __('Delete this mapping?') }}')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-500">{{ __('Delete') }}</button>
+                                                <button type="submit" class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">{{ __('Delete') }}</button>
                                             </form>
                                         </div>
                                     </td>
