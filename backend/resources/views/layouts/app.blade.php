@@ -33,6 +33,7 @@
             </main>
         </div>
 
+        <script src="{{ asset('js/visit-tracker.js') }}" defer></script>
         @stack('scripts')
     </body>
 </html>

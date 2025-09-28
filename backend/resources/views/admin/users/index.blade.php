@@ -13,6 +13,9 @@
             @if (session('status'))
                 <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-600">{{ session('status') }}</div>
             @endif
+            @if ($errors->has('user'))
+                <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">{{ $errors->first('user') }}</div>
+            @endif
             @if (session('api_token'))
                 <div class="mb-4 rounded-md bg-yellow-50 p-4 text-sm text-yellow-800">
                     <p class="font-semibold">{{ __('Copy this API token now – it will not be shown again:') }}</p>
@@ -39,8 +42,10 @@
                                     <td class="px-3 py-3 text-gray-700">{{ $roles[$user->role] ?? ucfirst($user->role) }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
-                                            @if (auth()->id() !== $user->id)
+                                            <form method="GET" action="{{ route('admin.users.edit', $user) }}">
+                                                <button type="submit" class="btn-edit">{{ __('Edit') }}</button>
+                                            </form>
+                                            @if (auth()->id() !== $user->id && $user->role !== 'admin')
                                                 <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('{{ __('Delete this user?') }}')">
                                                     @csrf
                                                     @method('DELETE')

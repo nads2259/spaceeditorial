@@ -18,8 +18,29 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+
 class ExternalContentService
 {
+    /**
+     * Phrases to strip from the end of imported articles.
+     * Lower-case entries for comparison.
+     *
+     * @var string[]
+     */
+    protected array $footerPhrases = [
+        'more about',
+        'join our commenting forum',
+        'join thought-provoking conversations, follow other independent readers and see their replies',
+        'most popular',
+        'popular videos',
+        'bulletin',
+        'read next',
+        'advertisement',
+    ];
+
     public function __construct(
         protected ArticleContentExtractor $extractor,
         protected DatabaseManager $db,
@@ -85,8 +106,15 @@ class ExternalContentService
         Collection $subcategoriesBySlug,
         bool $force
     ): bool {
-        $externalId = sha1($article->originalUrl);
-        $contentHash = hash('sha256', $article->originalUrl.$article->title);
+        $urlSignature = $article->originalUrl
+            ? Str::lower(trim($article->originalUrl))
+            : ($article->slug ? Str::lower($article->slug) : null);
+
+        if (! $urlSignature) {
+            return false;
+        }
+        $externalId = sha1($urlSignature);
+        $contentHash = hash('sha256', $urlSignature);
 
         $existing = Post::query()
             ->where(function ($query) use ($source, $externalId) {
@@ -105,6 +133,8 @@ class ExternalContentService
         if (! filled($body)) {
             $body = $this->extractor->fetch($article->originalUrl);
         }
+
+        $body = $this->sanitizeArticleBody($body);
 
         if (! filled($body)) {
             if ($existing) {
@@ -126,6 +156,8 @@ class ExternalContentService
             return false;
         }
 
+        $excerptSource = $article->excerpt ?: strip_tags($body);
+
         $payload = [
             'category_id' => $categoryId,
             'subcategory_id' => $subcategoryId,
@@ -134,7 +166,7 @@ class ExternalContentService
             'content_hash' => $contentHash,
             'title' => $article->title,
             'slug' => $article->slug,
-            'excerpt' => Str::limit(strip_tags((string) $article->excerpt ?: strip_tags($body)), 280),
+            'excerpt' => Str::limit(strip_tags((string) $excerptSource), 280),
             'body' => $body,
             'image_path' => $article->imageUrl,
             'original_url' => $article->originalUrl,
@@ -181,5 +213,134 @@ class ExternalContentService
         }
 
         return [$categoryId, $subcategoryId];
+    }
+
+    protected function sanitizeArticleBody(?string $body): ?string
+    {
+        if (! filled($body)) {
+            return $body;
+        }
+
+        $body = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/i', '', (string) $body);
+        $body = preg_replace('/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/i', '', (string) $body);
+
+        $body = trim((string) $body);
+
+        if ($body === '') {
+            return null;
+        }
+
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $html = '<?xml encoding="utf-8"?><div>'.$body.'</div>';
+
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if (! $loaded) {
+            return trim($body);
+        }
+
+        $root = $dom->documentElement;
+
+        if (! $root) {
+            return trim($body);
+        }
+
+        $xpath = new \DOMXPath($dom);
+
+        foreach ($xpath->query('//script | //style') as $node) {
+            $node->parentNode?->removeChild($node);
+        }
+
+        foreach ($xpath->query('//code | //pre') as $node) {
+            if (preg_match('/\b(function|var|let|const|window|document)\b/i', $node->textContent ?? '')) {
+                $node->parentNode?->removeChild($node);
+            }
+        }
+
+        $this->removeTrailingFooters($root);
+
+        $cleaned = '';
+        foreach (iterator_to_array($root->childNodes) as $child) {
+            $cleaned .= $dom->saveHTML($child);
+        }
+
+        $cleaned = trim($cleaned);
+
+        return $cleaned !== '' ? $cleaned : null;
+    }
+
+    protected function removeTrailingFooters(\DOMNode $node): void
+    {
+        while ($node->lastChild) {
+            $last = $node->lastChild;
+
+            if ($last instanceof \DOMText) {
+                $text = trim($last->wholeText ?? '');
+
+                if ($text === '') {
+                    $node->removeChild($last);
+                    continue;
+                }
+
+                if ($this->isFooterText($text)) {
+                    $node->removeChild($last);
+                    continue;
+                }
+
+                break;
+            }
+
+            if ($last instanceof \DOMElement) {
+                $tag = strtolower($last->tagName);
+
+                if (in_array($tag, ['br', 'hr'], true)) {
+                    $node->removeChild($last);
+                    continue;
+                }
+
+                $this->removeTrailingFooters($last);
+
+                $text = trim($last->textContent ?? '');
+
+                if ($text === '') {
+                    $node->removeChild($last);
+                    continue;
+                }
+
+                if ($this->isFooterText($text)) {
+                    $node->removeChild($last);
+                    continue;
+                }
+
+                break;
+            }
+
+            if (trim($last->textContent ?? '') === '') {
+                $node->removeChild($last);
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    protected function isFooterText(string $text): bool
+    {
+        $normalized = preg_replace('/\s+/u', ' ', mb_strtolower(trim($text)));
+
+        if ($normalized === '' || $normalized === null) {
+            return false;
+        }
+
+        foreach ($this->footerPhrases as $phrase) {
+            if (str_starts_with($normalized, $phrase)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

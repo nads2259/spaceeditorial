@@ -4,13 +4,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExternalSource;
+use App\Services\ExternalContent\ExternalContentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class ExternalSourceController extends Controller
 {
+    public function __construct(private readonly ExternalContentService $contentService)
+    {
+    }
+
     public function index(): View
     {
         $sources = ExternalSource::query()
@@ -62,6 +68,28 @@ class ExternalSourceController extends Controller
         $externalSource->delete();
 
         return redirect()->route('admin.external-sources.index')->with('status', 'External source deleted');
+    }
+
+    public function sync(Request $request, ExternalSource $externalSource): RedirectResponse
+    {
+        $force = $request->boolean('force');
+
+        try {
+            $imported = $this->contentService->sync($externalSource, $force);
+
+            return redirect()
+                ->route('admin.external-sources.index')
+                ->with('status', trans_choice('Imported :count article|Imported :count articles', $imported, ['count' => $imported]));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('admin.external-sources.index')
+                ->with('error', __('Sync failed for :name: :message', [
+                    'name' => $externalSource->name,
+                    'message' => $exception->getMessage(),
+                ]));
+        }
     }
 
     protected function validatedData(Request $request, ?ExternalSource $externalSource = null): array

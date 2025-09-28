@@ -65,7 +65,9 @@
                                     <td class="px-3 py-3 text-gray-500">{{ optional($post->published_at)->toDayDateTimeString() }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.posts.edit', $post) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+                                            <form method="GET" action="{{ route('admin.posts.edit', $post) }}">
+                                                <button type="submit" class="btn-edit">{{ __('Edit') }}</button>
+                                            </form>
                                             <form method="POST" action="{{ route('admin.posts.destroy', $post) }}" onsubmit="return confirm('{{ __('Delete this post?') }}')">
                                                 @csrf
                                                 @method('DELETE')

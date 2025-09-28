@@ -8,6 +8,7 @@ use App\Http\Resources\SubcategoryResource;
 use App\Models\Category;
 use App\Models\Subcategory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CategoryController extends Controller
@@ -17,14 +18,20 @@ class CategoryController extends Controller
         $categories = Category::query()
             ->active()
             ->with([
-                'posts' => fn (Builder $query) => $this->scopeFrontFacingPosts($query)->limit(12),
-                'subcategories' => fn (Builder $query) => $query
-                    ->active()
-                    ->with([
-                        'posts' => fn (Builder $query) => $this->scopeFrontFacingPosts($query)->limit(12),
-                        'category:id,slug',
-                    ])
-                    ->orderBy('sort_order'),
+                'posts' => function ($query) {
+                    return $this->scopeFrontFacingPosts($query)->limit(12);
+                },
+                'subcategories' => function ($query) {
+                    return $query
+                        ->active()
+                        ->with([
+                            'posts' => function ($innerQuery) {
+                                return $this->scopeFrontFacingPosts($innerQuery)->limit(12);
+                            },
+                            'category:id,slug',
+                        ])
+                        ->orderBy('sort_order');
+                },
             ])
             ->orderBy('sort_order')
             ->get();
@@ -38,14 +45,20 @@ class CategoryController extends Controller
             ->active()
             ->where('slug', $slug)
             ->with([
-                'posts' => fn (Builder $query) => $this->scopeFrontFacingPosts($query),
-                'subcategories' => fn (Builder $query) => $query
-                    ->active()
-                    ->with([
-                        'posts' => fn (Builder $query) => $this->scopeFrontFacingPosts($query),
-                        'category:id,slug',
-                    ])
-                    ->orderBy('sort_order'),
+                'posts' => function ($query) {
+                    return $this->scopeFrontFacingPosts($query);
+                },
+                'subcategories' => function ($query) {
+                    return $query
+                        ->active()
+                        ->with([
+                            'posts' => function ($innerQuery) {
+                                return $this->scopeFrontFacingPosts($innerQuery);
+                            },
+                            'category:id,slug',
+                        ])
+                        ->orderBy('sort_order');
+                },
             ])
             ->firstOrFail();
 
@@ -60,14 +73,16 @@ class CategoryController extends Controller
             ->active()
             ->with([
                 'category:id,slug',
-                'posts' => fn (Builder $query) => $this->scopeFrontFacingPosts($query),
+                'posts' => function ($query) {
+                    return $this->scopeFrontFacingPosts($query);
+                },
             ])
             ->firstOrFail();
 
         return new SubcategoryResource($subcategory);
     }
 
-    protected function scopeFrontFacingPosts(Builder $query): Builder
+    protected function scopeFrontFacingPosts(Builder|HasMany $query): Builder|HasMany
     {
         return $query
             ->published()

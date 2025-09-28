@@ -13,6 +13,9 @@
             @if (session('status'))
                 <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-600">{{ session('status') }}</div>
             @endif
+            @if (session('error'))
+                <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-600">{{ session('error') }}</div>
+            @endif
 
             <div class="bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 overflow-x-auto">
@@ -47,7 +50,13 @@
                                     <td class="px-3 py-3 text-gray-500">{{ optional($source->last_synced_at)->diffForHumans() ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.external-sources.edit', $source) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+                                            <form method="POST" action="{{ route('admin.external-sources.sync', $source) }}">
+                                                @csrf
+                                                <button type="submit" class="inline-flex items-center rounded-md bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-300">{{ __('Sync') }}</button>
+                                            </form>
+                                            <form method="GET" action="{{ route('admin.external-sources.edit', $source) }}">
+                                                <button type="submit" class="btn-edit">{{ __('Edit') }}</button>
+                                            </form>
                                             <form method="POST" action="{{ route('admin.external-sources.destroy', $source) }}" onsubmit="return confirm('{{ __('Delete this source?') }}')">
                                                 @csrf
                                                 @method('DELETE')

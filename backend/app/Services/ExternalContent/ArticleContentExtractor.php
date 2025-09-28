@@ -53,10 +53,30 @@ class ArticleContentExtractor
             $filtered = array_filter($content, fn ($value) => filled($value));
 
             if ($filtered) {
-                return implode("\n", $filtered);
+                return $this->sanitizeBody(implode("\n", $filtered));
             }
         }
 
         return null;
+    }
+
+    protected function sanitizeBody(string $html): string
+    {
+        $allowedTags = '<p><h2><h3><ul><ol><li><blockquote><strong><em><b><i><a><br>'; // keep basic formatting
+
+        $stripped = strip_tags($html, $allowedTags);
+
+        // Remove inline scripts/styles and unwanted attributes
+        $stripped = preg_replace('/\s+(on[a-z]+|style|class|id|data-[^=]+)=("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $stripped) ?? $stripped;
+
+        // Normalise whitespace and decode entities
+        $stripped = html_entity_decode($stripped, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $stripped = preg_replace("/\xc2\xa0/", ' ', $stripped) ?? $stripped; // replace non-breaking spaces
+
+        // Collapse multiple spaces but preserve paragraph separation
+        $stripped = preg_replace('/[ \t]+/', ' ', $stripped) ?? $stripped;
+        $stripped = preg_replace("/\n{2,}/", "\n\n", $stripped) ?? $stripped;
+
+        return trim($stripped);
     }
 }

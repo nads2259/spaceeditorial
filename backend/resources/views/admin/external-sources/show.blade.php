@@ -1,10 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ $source->name }}
             </h2>
-            <a href="{{ route('admin.external-sources.edit', $source) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+            <div class="flex items-center gap-2">
+                <form method="POST" action="{{ route('admin.external-sources.sync', $source) }}">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center rounded-md bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-300">{{ __('Sync') }}</button>
+                </form>
+                <form method="GET" action="{{ route('admin.external-sources.edit', $source) }}">
+                    <button type="submit" class="btn-edit px-4">{{ __('Edit') }}</button>
+                </form>
+            </div>
         </div>
     </x-slot>
 

@@ -80,16 +80,9 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         if ($user->role === 'admin') {
-            $otherAdmins = User::query()
-                ->where('role', 'admin')
-                ->where('id', '!=', $user->id)
-                ->count();
-
-            if ($otherAdmins === 0) {
-                throw ValidationException::withMessages([
-                    'user' => __('At least one administrator must remain.'),
-                ]);
-            }
+            return redirect()
+                ->route('admin.users.index')
+                ->withErrors(['user' => __('Administrators cannot be deleted.')]);
         }
 
         $user->tokens()->delete();

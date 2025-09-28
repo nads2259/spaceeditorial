@@ -4,7 +4,9 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ $category->name }}
             </h2>
-            <a href="{{ route('admin.categories.edit', $category) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+            <form method="GET" action="{{ route('admin.categories.edit', $category) }}">
+                <button type="submit" class="btn-edit px-4">{{ __('Edit') }}</button>
+            </form>
         </div>
     </x-slot>
 

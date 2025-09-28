@@ -82,6 +82,8 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    'frontend_origins' => env('FRONTEND_ORIGINS', 'http://127.0.0.1:5173,http://localhost:5173'),
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

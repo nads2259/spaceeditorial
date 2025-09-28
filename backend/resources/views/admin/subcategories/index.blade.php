@@ -52,7 +52,9 @@
                                         <td class="px-3 py-3 text-gray-500">{{ optional($subcategory->updated_at)->diffForHumans() }}</td>
                                         <td class="px-3 py-3 text-right">
                                             <div class="flex justify-end gap-2">
-                                                <a href="{{ route('admin.subcategories.edit', $subcategory) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+                                                <form method="GET" action="{{ route('admin.subcategories.edit', $subcategory) }}">
+                                                    <button type="submit" class="btn-edit">{{ __('Edit') }}</button>
+                                                </form>
                                                 <form method="POST" action="{{ route('admin.subcategories.destroy', $subcategory) }}" onsubmit="return confirm('{{ __('Delete this subcategory?') }}')">
                                                     @csrf
                                                     @method('DELETE')

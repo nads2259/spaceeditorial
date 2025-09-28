@@ -20,20 +20,32 @@ const hasFullContent = (post: Post) => {
 
 const filterPosts = (posts?: Post[]) => posts?.filter(hasFullContent) ?? [];
 
+const sortPosts = (posts: Post[]) =>
+  [...posts].sort((a, b) => {
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return dateB - dateA;
+  });
+
 export async function fetchSettings(): Promise<Settings> {
   const { data } = await api.get<Settings>('/api/settings');
   return data;
 }
 
-export async function fetchCategories(): Promise<(Category & { subcategories: (Subcategory & { posts?: Post[] })[] })[]> {
+export type CategoryWithContent = Category & {
+  posts: Post[];
+  subcategories: (Subcategory & { posts?: Post[] })[];
+};
+
+export async function fetchCategories(): Promise<CategoryWithContent[]> {
   const { data } = await api.get<{ data: Category[] }>('/api/categories');
   return data.data.map((category) => ({
     ...category,
-    posts: filterPosts(category.posts),
+    posts: sortPosts(filterPosts(category.posts)),
     subcategories:
       category.subcategories?.map((subcategory) => ({
         ...subcategory,
-        posts: filterPosts(subcategory.posts),
+        posts: sortPosts(filterPosts(subcategory.posts)),
         categorySlug: category.slug,
       })) ?? [],
   }));
@@ -43,11 +55,11 @@ export async function fetchCategory(slug: string): Promise<Category> {
   const { data } = await api.get<{ data: Category }>(`/api/categories/${slug}`);
   return {
     ...data.data,
-    posts: filterPosts(data.data.posts),
+    posts: sortPosts(filterPosts(data.data.posts)),
     subcategories:
       data.data.subcategories?.map((subcategory) => ({
         ...subcategory,
-        posts: filterPosts(subcategory.posts),
+        posts: sortPosts(filterPosts(subcategory.posts)),
         categorySlug: data.data.slug,
       })) ?? [],
   };
@@ -57,7 +69,7 @@ export async function fetchSubcategory(categorySlug: string, subcategorySlug: st
   const { data } = await api.get<{ data: Subcategory }>(`/api/categories/${categorySlug}/subcategories/${subcategorySlug}`);
   return {
     ...data.data,
-    posts: filterPosts(data.data.posts),
+    posts: sortPosts(filterPosts(data.data.posts)),
     categorySlug,
   };
 }
@@ -67,17 +79,13 @@ export async function fetchPost(slug: string): Promise<Post> {
   return data.data;
 }
 
-export async function searchPosts(query: string, page = 1): Promise<SearchResponse> {
+export async function searchPosts(query: string, page = 1, perPage = 12): Promise<SearchResponse> {
   const { data } = await api.get<SearchResponse>('/api/search', {
-    params: { q: query, page },
+    params: { q: query, page, per_page: perPage },
   });
-  const filtered = data.data.filter(hasFullContent);
+
   return {
     ...data,
-    data: filtered,
-    meta: {
-      ...data.meta,
-      total: filtered.length,
-    },
+    data: data.data.filter(hasFullContent),
   };
 }

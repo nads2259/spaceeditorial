@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import PostCard from '../components/PostCard';
@@ -10,9 +11,11 @@ function SearchPage() {
   const [page, setPage] = useState(Number(searchParams.get('page') ?? 1));
   const query = searchParams.get('q') ?? '';
 
+  const PER_PAGE = 12;
+
   const { data, isPending } = useQuery<SearchResponse>({
-    queryKey: ['search', query, page],
-    queryFn: () => searchPosts(query, page),
+    queryKey: ['search', query, page, PER_PAGE],
+    queryFn: () => searchPosts(query, page, PER_PAGE),
     enabled: query.trim().length > 0,
   });
 
@@ -39,8 +42,19 @@ function SearchPage() {
     );
   }
 
+  const baseUrl = import.meta.env.VITE_SITE_BASE_URL ?? window.location.origin;
+  const canonical = `${baseUrl}/search?q=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ''}`;
+
   return (
     <div className="space-y-10 py-12">
+      <Helmet>
+        <title>{`Search results for “${query}” | Space Editorial`}</title>
+        <meta name="description" content={`Find analysis, features, and mission updates for “${query}”.`} />
+        <link rel="canonical" href={canonical} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`Search: ${query}`} />
+        <meta property="og:description" content={`Latest coverage related to ${query}.`} />
+      </Helmet>
       <section className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">Search results for “{query}”</h1>
         {isPending && <p className="mt-3 text-sm text-slate-500">Searching…</p>}
@@ -55,12 +69,12 @@ function SearchPage() {
             ))}
           </div>
           {data.meta.last_page > 1 && (
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
                 disabled={page === 1}
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm disabled:opacity-40"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm disabled:opacity-40"
               >
                 Previous
               </button>
@@ -69,7 +83,7 @@ function SearchPage() {
                 type="button"
                 disabled={page >= data.meta.last_page}
                 onClick={() => setPage((prev) => Math.min(prev + 1, data.meta.last_page))}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm disabled:opacity-40"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm disabled:opacity-40"
               >
                 Next
               </button>

@@ -33,7 +33,9 @@
                                     </td>
                                     <td class="px-3 py-3 text-right">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('admin.site-settings.edit', $setting) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+                                            <form method="GET" action="{{ route('admin.site-settings.edit', $setting) }}">
+                                                <button type="submit" class="btn-edit">{{ __('Edit') }}</button>
+                                            </form>
                                             <form method="POST" action="{{ route('admin.site-settings.destroy', $setting) }}" onsubmit="return confirm('{{ __('Delete this setting?') }}')">
                                                 @csrf
                                                 @method('DELETE')

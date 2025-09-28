@@ -15,11 +15,11 @@ return new class extends Migration
         DB::table('site_settings')->updateOrInsert(
             ['key' => 'branding'],
             [
-                'value' => [
+                'value' => json_encode([
                     'logo_text' => 'Space Editorial',
                     'accent_color' => '#4f46e5',
                     'background_color' => '#0f172a',
-                ],
+                ], JSON_THROW_ON_ERROR),
             ]
         );
     }
@@ -31,11 +31,11 @@ return new class extends Migration
         }
 
         DB::table('site_settings')->where('key', 'branding')->update([
-            'value' => [
+            'value' => json_encode([
                 'logo_text' => 'Highway Sniper',
                 'accent_color' => '#ff6b35',
                 'background_color' => '#0f172a',
-            ],
+            ], JSON_THROW_ON_ERROR),
         ]);
     }
 };

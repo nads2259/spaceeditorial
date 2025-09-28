@@ -13,7 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->use([
+            \App\Http\Middleware\CorsMiddleware::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'tracking/visit',
+            'newsletter/subscribe',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPost } from '../services/api';
@@ -23,16 +24,49 @@ function BlogDetailPage() {
 
   const categoryName = post.category?.name ?? post.subcategory?.name ?? 'General';
   const sourceName = (post.meta?.source_name as string | undefined) ?? (post.meta?.source as string | undefined);
+  const baseUrl = import.meta.env.VITE_SITE_BASE_URL ?? window.location.origin;
+  const canonical = `${baseUrl}/blog/${post.slug}`;
+  const description = post.excerpt ? post.excerpt.replace(/\s+/g, ' ').trim() : `${post.title} – ${categoryName}`;
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description,
+    author: post.meta?.author ? { '@type': 'Person', name: String(post.meta.author) } : undefined,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Space Editorial',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/assets/logo.png`,
+      },
+    },
+    mainEntityOfPage: canonical,
+    datePublished: post.publishedAt ?? post.createdAt ?? undefined,
+    dateModified: post.updatedAt ?? post.publishedAt ?? undefined,
+    image: post.image ?? undefined,
+  };
 
   return (
     <article className="py-12">
+      <Helmet>
+        <title>{`${post.title} | Space Editorial`}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={canonical} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={description} />
+        {post.image && <meta property="og:image" content={post.image} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      </Helmet>
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         <div className="relative">
           {post.image ? (
             <img src={post.image} alt={post.title} className="h-[420px] w-full object-cover" />
           ) : (
-            <div className="placeholder-panel flex h-[320px] items-center justify-center text-5xl font-bold">
-              {categoryName.charAt(0)}
+            <div className="placeholder-panel flex h-[320px] items-center justify-center">
+              <span className="sr-only">{categoryName}</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/20 to-transparent" />
@@ -50,6 +84,7 @@ function BlogDetailPage() {
         {post.body && (
           <div className="post-gradient-backdrop prose prose-lg max-w-none px-8 py-12 sm:px-12" dangerouslySetInnerHTML={{ __html: post.body }} />
         )}
+        {/*
         {post.originalUrl && !post.meta?.fetched_from_original && (
           <div className="border-t border-slate-200 px-8 pb-8 pt-4 sm:px-12">
             <a
@@ -62,6 +97,7 @@ function BlogDetailPage() {
             </a>
           </div>
         )}
+        */}
       </div>
     </article>
   );

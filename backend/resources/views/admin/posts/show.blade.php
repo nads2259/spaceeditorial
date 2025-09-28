@@ -4,7 +4,9 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ $post->title }}
             </h2>
-            <a href="{{ route('admin.posts.edit', $post) }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Edit') }}</a>
+            <form method="GET" action="{{ route('admin.posts.edit', $post) }}">
+                <button type="submit" class="btn-edit px-4">{{ __('Edit') }}</button>
+            </form>
         </div>
     </x-slot>
 
