@@ -39,4 +39,6 @@ Initial authentication scaffolding comes from Laravel Breeze (Blade). The admin 
 
 1. Create a feature branch.
 2. Make your changes with tests.
-3. Open a pull request referencing the related issue.
+3. Open a pull request referencing the related issue. 
+
+Note: Will add later
