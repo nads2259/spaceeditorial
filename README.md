@@ -108,6 +108,32 @@ After updating credentials you can refresh content via Artisan:
 
   Alternatively, trigger a single-source sync from **Admin → Sources** using the **Sync** button.
 
+## Production Deployment
+
+### Backend (Laravel)
+
+- Provision a PHP 8.3+ runtime with the usual extensions (`bcmath`, `curl`, `json`, `mbstring`, `openssl`, `pdo`, `tokenizer`, `xml`). Point the webroot at `backend/public`.
+- Copy `backend/.env.example` to `backend/.env` and set production values: database credentials, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `FRONTEND_ORIGINS`, mail provider settings, and any external source keys.
+- Run `composer install --no-dev --optimize-autoloader` inside `backend/`, then `php artisan key:generate` if this is a fresh install.
+- Compile the Blade asset bundle: `npm ci` (or `npm install`) followed by `npm run build` inside `backend/`. Commit the generated `public/build` directory or deploy it with the release artifact.
+- Execute database migrations with force flag (`php artisan migrate --force`) and optionally seed demo data (`php artisan db:seed --force`) if you need sample content.
+- Cache configuration and routes for performance: `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`.
+- Configure a process manager (Supervisor/systemd) for any queued jobs you enable and register a cron entry for `php artisan schedule:run` every minute to drive syncs (`external:sync`) and housekeeping commands.
+- Ensure `public/js/visit-tracker.js` is world-readable; the frontend embed relies on this path to log visits.
+
+### Frontend (React)
+
+- Inside `frontend/`, create `.env.production` (or whatever your host expects) with `VITE_API_BASE_URL`, `VITE_API_TOKEN`, and `VITE_TRACKING_BASE_URL` if the tracking endpoint lives on a separate hostname.
+- Install dependencies (`npm ci`) and build the static bundle with `npm run build`. Deploy the resulting `dist/` directory to your CDN or static host.
+- If you serve the frontend from the same origin as the backend, proxy API calls to `backend/public/index.php` and expose `/js/visit-tracker.js` so analytics continue to function.
+- After each release, invalidate caches (CDN, Cloudflare, etc.) to pick up fresh metadata and tracking script updates.
+
+### Post-Deployment Checklist
+
+- Run `php artisan migrate --force` after every release that ships new migrations.
+- Verify the admin dashboard at `/admin` loads charts and stats, confirming the visit tracker bundle is present.
+- Trigger `php artisan external:sync` manually or wait for the scheduler to confirm content ingestion works with the new environment variables.
+
 ## Helpful Artisan Commands
 
 | Command | Description |
