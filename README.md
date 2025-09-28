@@ -124,7 +124,11 @@ After updating credentials you can refresh content via Artisan:
 ### Frontend (React)
 
 - Inside `frontend/`, create `.env.production` (or whatever your host expects) with `VITE_API_BASE_URL`, `VITE_API_TOKEN`, and `VITE_TRACKING_BASE_URL` if the tracking endpoint lives on a separate hostname.
-- Install dependencies (`npm ci`) and build the static bundle with `npm run build`. Deploy the resulting `dist/` directory to your CDN or static host.
+- Build the bundle in four steps:
+  1. `cd frontend`
+  2. `npm ci` (or `npm install` if CI caches are unavailable)
+  3. `npm run build` to emit the optimized assets into `frontend/dist/`
+  4. Deploy the contents of `dist/` to your static host or CDN edge.
 - If you serve the frontend from the same origin as the backend, proxy API calls to `backend/public/index.php` and expose `/js/visit-tracker.js` so analytics continue to function.
 - After each release, invalidate caches (CDN, Cloudflare, etc.) to pick up fresh metadata and tracking script updates.
 
