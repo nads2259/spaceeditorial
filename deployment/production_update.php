@@ -11,6 +11,22 @@ declare(strict_types=1);
  * Execute with: php deployment/production_update.php
  */
 
+if (! defined('STDIN')) {
+    define('STDIN', fopen('php://temp', 'r'));
+}
+
+if (! defined('STDOUT')) {
+    define('STDOUT', fopen('php://output', 'w'));
+}
+
+if (! defined('STDERR')) {
+    $stderr = @fopen('php://stderr', 'w');
+    if (! $stderr) {
+        $stderr = fopen('php://output', 'w');
+    }
+    define('STDERR', $stderr);
+}
+
 const MIN_PHP_VERSION = '8.2.0';
 const REQUIRED_EXTENSIONS = ['bcmath', 'ctype', 'curl', 'dom', 'fileinfo', 'json', 'mbstring', 'openssl', 'pdo', 'tokenizer'];
 const WRITABLE_PATHS = ['backend/storage', 'backend/bootstrap/cache'];

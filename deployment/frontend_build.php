@@ -7,6 +7,22 @@ declare(strict_types=1);
  * Execute with: php deployment/frontend_build.php
  */
 
+if (! defined('STDIN')) {
+    define('STDIN', fopen('php://temp', 'r'));
+}
+
+if (! defined('STDOUT')) {
+    define('STDOUT', fopen('php://output', 'w'));
+}
+
+if (! defined('STDERR')) {
+    $stderr = @fopen('php://stderr', 'w');
+    if (! $stderr) {
+        $stderr = fopen('php://output', 'w');
+    }
+    define('STDERR', $stderr);
+}
+
 $requirements = ['node', 'npm'];
 foreach ($requirements as $binary) {
     ensureCommand($binary);
