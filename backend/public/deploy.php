@@ -4,16 +4,33 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Artisan;
 
+header('Content-Type: application/json');
+
 set_time_limit(0);
 
-require __DIR__.'/../vendor/autoload.php';
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$autoload = __DIR__.'/../vendor/autoload.php';
+if (! file_exists($autoload)) {
+    sendJson([
+        'status' => 'error',
+        'message' => 'Composer dependencies are missing. Upload the vendor directory or run composer install before using deploy.php.',
+    ], 500);
+}
 
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$app->make(Illuminate\Contracts\Http\Kernel::class);
+try {
+    require $autoload;
+    $app = require_once __DIR__.'/../bootstrap/app.php';
+    $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $app->make(Illuminate\Contracts\Http\Kernel::class);
+} catch (Throwable $exception) {
+    sendJson([
+        'status' => 'error',
+        'message' => 'Failed to bootstrap Laravel. Ensure vendor and bootstrap files exist.',
+        'detail' => $exception->getMessage(),
+    ], 500);
+}
 
 $token = $_GET['token'] ?? '';
-$configToken = env('DEPLOY_WEB_TOKEN');
+$configToken = function_exists('env') ? env('DEPLOY_WEB_TOKEN') : null;
 
 if (! $configToken || ! hash_equals($configToken, $token)) {
     http_response_code(403);
@@ -110,7 +127,6 @@ function checkRequirements(): array
 function sendJson(array $payload, int $status = 200): void
 {
     http_response_code($status);
-    header('Content-Type: application/json');
     echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
