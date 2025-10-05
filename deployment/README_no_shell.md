@@ -25,5 +25,6 @@ If the host will not run the Artisan commands for you, open a support ticket and
 - Confirm the welcome emails render with correct links by subscribing and registering through the live site.
 - Visit `/admin/email-broadcasts` to ensure the metrics row and broadcast history load.
 - Purge CDN or hosting caches so the new `visit-tracker.js` and frontend assets take effect.
+- For future releases, run `php deployment/production_update.php` on the server (or via hosting support) to validate requirements and apply pending migrations without manual SQL access.
 
 Keep this directory (`deployment/`) updated whenever the deployment flow changes so non-SSH environments remain supported.
