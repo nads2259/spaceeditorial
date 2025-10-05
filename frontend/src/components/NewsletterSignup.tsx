@@ -1,66 +1,7 @@
-import { FormEvent, useState } from 'react';
-
-function resolveNewsletterEndpoint(): string | null {
-  const base = import.meta.env.VITE_API_BASE_URL as string | undefined;
-
-  if (base) {
-    return `${base.replace(/\/$/, '')}/newsletter/subscribe`;
-  }
-
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin.replace(/\/$/, '')}/newsletter/subscribe`;
-  }
-
-  return null;
-}
+import { useNewsletterSubscription } from '../hooks/useNewsletterSubscription';
 
 function NewsletterSignup() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState<string>('');
-
-  const endpoint = resolveNewsletterEndpoint();
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!endpoint) {
-      setStatus('error');
-      setMessage('Subscription endpoint is not configured.');
-      return;
-    }
-
-    setStatus('submitting');
-    setMessage('');
-
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-        credentials: 'include',
-      });
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        const errorMessage = typeof body?.message === 'string' ? body.message : 'Unable to subscribe. Please try again later.';
-        setStatus('error');
-        setMessage(errorMessage);
-        return;
-      }
-
-      setStatus('success');
-      setMessage(body?.message ?? 'Thanks! You are subscribed.');
-      setEmail('');
-    } catch (error) {
-      console.error(error);
-      setStatus('error');
-      setMessage('Network error. Please try again.');
-    }
-  };
+  const { email, setEmail, status, message, handleSubmit } = useNewsletterSubscription();
 
   return (
     <section id="newsletter" className="mt-12 rounded-3xl bg-white px-6 py-8 shadow-sm">

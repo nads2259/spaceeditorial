@@ -92,6 +92,59 @@ class ExternalSourceController extends Controller
         }
     }
 
+    public function syncAll(Request $request): RedirectResponse
+    {
+        $force = $request->boolean('force');
+
+        $sources = ExternalSource::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        if ($sources->isEmpty()) {
+            return redirect()
+                ->route('admin.external-sources.index')
+                ->with('error', __('No active external sources are configured.'));
+        }
+
+        $totalImported = 0;
+        $failed = [];
+
+        foreach ($sources as $source) {
+            try {
+                $imported = $this->contentService->sync($source, $force);
+                $totalImported += $imported;
+            } catch (Throwable $exception) {
+                report($exception);
+                $failed[] = __(':name (:message)', [
+                    'name' => $source->name,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if (count($failed) === 0) {
+            return redirect()
+                ->route('admin.external-sources.index')
+                ->with('status', __('Sync completed. Imported :count articles from :sources sources.', [
+                    'count' => $totalImported,
+                    'sources' => $sources->count(),
+                ]));
+        }
+
+        $errorMessage = __('Some sources failed to sync: :list', [
+            'list' => implode('; ', $failed),
+        ]);
+
+        return redirect()
+            ->route('admin.external-sources.index')
+            ->with('error', $errorMessage)
+            ->with('status', __('Imported :count articles from :success sources.', [
+                'count' => $totalImported,
+                'success' => $sources->count() - count($failed),
+            ]));
+    }
+
     protected function validatedData(Request $request, ?ExternalSource $externalSource = null): array
     {
         $sourceId = $externalSource?->id;

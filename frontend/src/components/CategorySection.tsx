@@ -19,8 +19,6 @@ const sortPosts = (posts: Post[] = []): Post[] =>
   });
 
 function SubcategoryGrid({ subcategories }: { subcategories: Subcategory[] }) {
-  if (!subcategories.length) return null;
-
   const normalised = useMemo(
     () =>
       subcategories.map((subcategory) => ({
@@ -29,6 +27,8 @@ function SubcategoryGrid({ subcategories }: { subcategories: Subcategory[] }) {
       })),
     [subcategories]
   );
+
+  if (!normalised.length) return null;
 
   return (
     <div className="subcategory-grid mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

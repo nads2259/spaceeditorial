@@ -1,27 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import CategorySection from '../components/CategorySection';
-import NewsletterSignup from '../components/NewsletterSignup';
 import { fetchCategories, type CategoryWithContent } from '../services/api';
 import { formatDate } from '../utils/dates';
 
 function HomePage() {
   const { data: categories, isPending, isError } = useQuery({ queryKey: ['home-categories'], queryFn: fetchCategories });
-  const location = useLocation();
-
-  useEffect(() => {
-    if (location.hash === '#newsletter') {
-      const element = document.getElementById('newsletter');
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      }
-    }
-  }, [location]);
-
   if (isPending) {
     return <div className="py-24 text-center text-slate-500">Loading categories…</div>;
   }
@@ -30,13 +15,7 @@ function HomePage() {
     return <div className="py-24 text-center text-red-500">Failed to load categories.</div>;
   }
 
-  const allPosts = categories.flatMap((category) =>
-    (category.posts ?? []).map((post) => ({
-      ...post,
-      categorySlug: category.slug,
-      categoryName: category.name,
-    }))
-  );
+
 
   const populatedCategories: CategoryWithContent[] = categories
     .map((category) => ({
@@ -161,7 +140,6 @@ function HomePage() {
         ))}
       </div>
 
-      <NewsletterSignup />
     </div>
     </>
   );

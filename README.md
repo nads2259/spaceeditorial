@@ -22,6 +22,8 @@ php artisan migrate --seed  # includes demo content for the frontend
 php artisan serve --host=127.0.0.1 --port=8001
 ```
 
+Set `APP_SITE_URL` in `backend/.env` to the public-facing domain that serves the React app so transactional emails can link to the correct pages (for example `https://spaceeditorial.com`).
+
 Initial authentication scaffolding comes from Laravel Breeze (Blade). The admin area lives under `/admin` once you sign in.
 
 ### Default Admin Access
@@ -131,6 +133,38 @@ After updating credentials you can refresh content via Artisan:
   4. Deploy the contents of `dist/` to your static host or CDN edge.
 - If you serve the frontend from the same origin as the backend, proxy API calls to `backend/public/index.php` and expose `/js/visit-tracker.js` so analytics continue to function.
 - After each release, invalidate caches (CDN, Cloudflare, etc.) to pick up fresh metadata and tracking script updates.
+
+### Shared Hosting Deployment (Folder Install)
+
+When the project lives inside a folder on shared hosting (for example `public_html/spaceeditorial/`), follow the usual backend/frontend build steps above and then:
+
+- Upload the repository so that `backend/`, `frontend/`, and `docs/` sit inside that folder.
+- Point the domain/subdomain to `backend/public` if your control panel allows custom document roots. The existing `backend/public/.htaccess` already contains the rewrite rules Laravel needs.
+- If you *cannot* change the document root, drop the following `.htaccess` file next to `backend/`:
+
+  ```apache
+  <IfModule mod_rewrite.c>
+      RewriteEngine On
+
+      # Skip if the request already targets the public directory
+      RewriteRule ^backend/public/ - [L]
+
+      # Serve existing files/directories from backend/public without hitting index.php
+      RewriteCond %{DOCUMENT_ROOT}/backend/public/$1 -f
+      RewriteRule ^(.*)$ backend/public/$1 [L]
+
+      RewriteCond %{DOCUMENT_ROOT}/backend/public/$1 -d
+      RewriteRule ^(.*)$ backend/public/$1/ [L]
+
+      # Fall back to Laravel's front controller
+      RewriteRule ^ backend/public/index.php [L]
+  </IfModule>
+  ```
+
+  Adjust the `RewriteRule` paths if you rename the folder. Keep the existing `backend/public/.htaccess`; it continues to handle Laravel’s internal routing once requests are forwarded.
+- Update `APP_URL` in `backend/.env` to include the folder segment (e.g. `https://example.com/spaceeditorial`).
+- Clear and cache Laravel configuration after every `.env` edit: `php artisan config:clear && php artisan config:cache`.
+- Confirm that `/docs/index.html` (internal handbook) still resolves in the hosted environment. If the docs live outside `backend/public`, replicate or symlink them under `backend/public/docs/` so the rewrite rules can reach them.
 
 ### Post-Deployment Checklist
 

@@ -1,4 +1,3 @@
-<span {{ $attributes->merge(['class' => 'block text-left leading-tight']) }}>
-    <span class="block text-lg font-semibold text-indigo-600">Space Editorial</span>
-    <span class="block text-sm font-medium text-slate-500">Admin Login</span>
+<span {{ $attributes->merge(['class' => 'inline-flex items-center text-lg font-semibold leading-tight text-indigo-600 whitespace-nowrap']) }}>
+    Space Editorial
 </span>

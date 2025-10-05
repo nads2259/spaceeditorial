@@ -1,9 +1,22 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Posts') }}
-            </h2>
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2 class="text-xl font-semibold text-gray-800 leading-tight">{{ __('Posts') }}</h2>
+            <form method="GET" action="{{ route('admin.posts.index') }}" class="flex flex-wrap items-center gap-2">
+                <label for="post-search" class="sr-only">{{ __('Search posts') }}</label>
+                <input
+                    id="post-search"
+                    name="q"
+                    type="search"
+                    value="{{ $search }}"
+                    placeholder="{{ __('Search by title, slug, category…') }}"
+                    class="w-64 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                @if ($search)
+                    <a href="{{ route('admin.posts.index') }}" class="inline-flex items-center rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('Reset') }}</a>
+                @endif
+                <button type="submit" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('Search') }}</button>
+            </form>
             <div class="flex items-center gap-3">
                 <form method="POST" action="{{ route('admin.posts.bulk-destroy') }}" id="bulk-delete-form" class="hidden">
                     @csrf
@@ -29,6 +42,12 @@
             @endif
 
             <div class="bg-white shadow-sm sm:rounded-lg">
+                <div class="flex items-center justify-between px-6 pt-6 text-xs text-slate-500">
+                    <span>{{ trans_choice(':count post total|:count posts total', $posts->total(), ['count' => $posts->total()]) }}</span>
+                    @if ($search)
+                        <span>{{ __('Filtered by: ":search"', ['search' => $search]) }}</span>
+                    @endif
+                </div>
                 <div class="p-6 overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
                         <thead class="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -85,7 +104,7 @@
                     </table>
 
                     <div class="mt-6">
-                        {{ $posts->links() }}
+                        {{ $posts->onEachSide(1)->links() }}
                     </div>
                 </div>
             </div>

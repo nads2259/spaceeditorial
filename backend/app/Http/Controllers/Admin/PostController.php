@@ -15,14 +15,30 @@ use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim((string) $request->query('q'));
+
         $posts = Post::query()
             ->with(['category:id,name,slug', 'subcategory:id,name,slug', 'externalSource:id,name'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('subcategory', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('externalSource', fn ($q) => $q->where('name', 'like', "%{$search}%"));
+                });
+            })
             ->orderByDesc('published_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.posts.index', compact('posts'));
+        return view('admin.posts.index', [
+            'posts' => $posts,
+            'search' => $search,
+        ]);
     }
 
     public function create(): View
@@ -112,7 +128,10 @@ class PostController extends Controller
             'meta' => ['nullable', 'string'],
         ]);
 
-        if ($validated['subcategory_id'] ?? null) {
+        $validated['subcategory_id'] = filled($validated['subcategory_id'] ?? null) ? (int) $validated['subcategory_id'] : null;
+        $validated['external_source_id'] = filled($validated['external_source_id'] ?? null) ? (int) $validated['external_source_id'] : null;
+
+        if ($validated['subcategory_id']) {
             $subcategory = Subcategory::query()->find($validated['subcategory_id']);
             if ($subcategory && $subcategory->category_id !== (int) $validated['category_id']) {
                 abort(422, 'Selected subcategory does not belong to the chosen category.');

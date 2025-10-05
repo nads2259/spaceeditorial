@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Category, Post, SearchResponse, Settings, Subcategory } from '../types';
+import type { Category, Post, PostComment, SearchResponse, Settings, Subcategory } from '../types';
 
 const apiToken = import.meta.env.VITE_API_TOKEN;
 
@@ -77,6 +77,30 @@ export async function fetchSubcategory(categorySlug: string, subcategorySlug: st
 export async function fetchPost(slug: string): Promise<Post> {
   const { data } = await api.get<{ data: Post }>(`/api/posts/${slug}`);
   return data.data;
+}
+
+export async function fetchPostComments(slug: string): Promise<PostComment[]> {
+  try {
+    const { data } = await api.get<{ data: Array<{ id: number; body: string; created_at?: string | null; author?: { id?: number | null; name?: string | null } | null }> }>(`/api/posts/${slug}/comments`);
+
+    return (data.data ?? []).map((comment) => ({
+      id: comment.id,
+      body: comment.body,
+      createdAt: comment.created_at ?? null,
+      author: comment.author
+        ? {
+            id: typeof comment.author.id === 'number' ? comment.author.id : null,
+            name: comment.author.name ?? null,
+          }
+        : null,
+    }));
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 503) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 export async function searchPosts(query: string, page = 1, perPage = 12): Promise<SearchResponse> {

@@ -61,3 +61,14 @@ export interface SearchResponse {
     total: number;
   };
 }
+
+export interface PostComment {
+  id: number;
+  body: string;
+  createdAt?: string | null;
+  author: {
+    id: number | null;
+    name: string | null;
+  } | null;
+  status?: string;
+}

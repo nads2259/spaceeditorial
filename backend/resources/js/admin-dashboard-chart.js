@@ -1,4 +1,4 @@
-const CHART_SELECTOR = '[data-visits-chart]';
+const CHART_SELECTOR = '[data-chart-series],[data-visits-chart]';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const DAYS_TO_DISPLAY = 14;
 const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
@@ -19,7 +19,7 @@ const toDateKey = (date) => {
 };
 
 const parseRawData = (element) => {
-    const raw = element.getAttribute('data-visits');
+    const raw = element.getAttribute('data-chart-series') ?? element.getAttribute('data-visits');
     if (!raw) {
         return [];
     }
@@ -28,7 +28,7 @@ const parseRawData = (element) => {
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-        console.warn('Failed to parse visits data payload:', error);
+        console.warn('Failed to parse chart data payload:', error);
         return [];
     }
 };
@@ -161,9 +161,10 @@ const showTooltip = (element, tooltip, target, datum) => {
     const clampedX = Math.min(Math.max(centerX, 16), containerRect.width - 16);
     const top = preferredTop < 8 ? 8 : preferredTop;
 
-    tooltip.textContent = `${numberFormatter.format(datum.total)} ${datum.total === 1 ? 'visit' : 'visits'} • ${formatLongLabel(
-        datum.date
-    )}`;
+    const singular = element.dataset.chartUnitSingular || 'value';
+    const plural = element.dataset.chartUnitPlural || 'values';
+    const unit = datum.total === 1 ? singular : plural;
+    tooltip.textContent = `${numberFormatter.format(datum.total)} ${unit} • ${formatLongLabel(datum.date)}`;
     tooltip.style.left = `${clampedX}px`;
     tooltip.style.top = `${top}px`;
     tooltip.style.opacity = '1';
@@ -195,7 +196,7 @@ const createEmptyState = (element) => {
 const buildChartSvg = (element, data, dimensions) => {
     const { width, height } = dimensions;
     const padding = { top: 24, right: 24, bottom: 44, left: 56 };
-    const { chartTitle = 'Visits' } = element.dataset;
+    const { chartTitle = 'Series', chartUnitSingular = 'value', chartUnitPlural = 'values' } = element.dataset;
 
     const maxValue = data.reduce((acc, item) => Math.max(acc, item.total), 0);
     const safeMax = maxValue > 0 ? maxValue : 1;

@@ -1,4 +1,17 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+@php
+    $adminLinks = [
+        ['label' => __('Sources'), 'route' => 'admin.external-sources.index'],
+        ['label' => __('Mappings'), 'route' => 'admin.category-mappings.index'],
+        ['label' => __('Settings'), 'route' => 'admin.site-settings.index'],
+        ['label' => __('Subscribers'), 'route' => 'admin.subscribers.index'],
+        ['label' => __('Visit Logs'), 'route' => 'admin.visit-logs.index'],
+        ['label' => __('Users'), 'route' => 'admin.users.index'],
+        ['label' => __('Frontend Users'), 'route' => 'admin.frontend-users.index'],
+        ['label' => __('Contact Messages'), 'route' => 'admin.contact-messages.index'],
+        ['label' => __('Email Broadcasts'), 'route' => 'admin.email-broadcasts.index'],
+    ];
+@endphp
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -11,7 +24,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:flex-nowrap sm:items-center sm:gap-10">
+                <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:flex-nowrap sm:items-center sm:gap-8">
                     <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -24,57 +37,12 @@
                     <x-nav-link :href="route('admin.posts.index')" :active="request()->routeIs('admin.posts.*')">
                         {{ __('Posts') }}
                     </x-nav-link>
-                    @php
-                        $adminLinks = [
-                            ['label' => __('Sources'), 'route' => 'admin.external-sources.index'],
-                            ['label' => __('Mappings'), 'route' => 'admin.category-mappings.index'],
-                            ['label' => __('Settings'), 'route' => 'admin.site-settings.index'],
-                            ['label' => __('Subscribers'), 'route' => 'admin.subscribers.index'],
-                            ['label' => __('Visit Logs'), 'route' => 'admin.visit-logs.index'],
-                            ['label' => __('Users'), 'route' => 'admin.users.index'],
-                        ];
-
-                        $adminActive = collect($adminLinks)->contains(function ($link) {
-                            return request()->routeIs($link['route']) || request()->routeIs($link['route'].'*');
-                        });
-
-                        $adminButtonClasses = 'text-slate-600 hover:text-brand-base';
-                    @endphp
-
-                    @if (Auth::user()->role === 'admin')
-                        <div x-data="{ open: false }" class="relative sm:flex sm:items-center sm:-my-px">
-                            <button
-                                type="button"
-                                @click="open = !open"
-                                @keydown.escape.window="open = false"
-                                class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition {{ $adminButtonClasses }}"
-                            >
-                                {{ __('Site Administration') }}
-                                <svg class="ms-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-
-                            <div
-                                x-cloak
-                                x-show="open"
-                                @click.outside="open = false"
-                                x-transition
-                                class="absolute left-0 z-30 mt-2 min-w-[220px] rounded-xl border border-slate-200 bg-white shadow-lg"
-                            >
-                                <div class="py-2">
-                                    @foreach ($adminLinks as $link)
-                                        <a
-                                            href="{{ route($link['route']) }}"
-                                            class="block px-4 py-2 text-sm text-slate-600 hover:bg-brand-base/10 hover:text-brand-base"
-                                        >
-                                            {{ $link['label'] }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endif
+                    <x-nav-link :href="route('admin.email-templates.index')" :active="request()->routeIs('admin.email-templates.*')">
+                        {{ __('Email Templates') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('admin.post-comments.index')" :active="request()->routeIs('admin.post-comments.*')">
+                        {{ __('Comments') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -122,6 +90,16 @@
                 </button>
             </div>
         </div>
+
+        @if (Auth::user()->role === 'admin')
+            <div class="hidden sm:flex sm:flex-wrap sm:items-center sm:gap-4 sm:border-t sm:border-slate-100 sm:pb-3 sm:pt-3">
+                @foreach ($adminLinks as $link)
+                    <x-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route']) || request()->routeIs($link['route'].'*')">
+                        {{ $link['label'] }}
+                    </x-nav-link>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     <!-- Responsive Navigation Menu -->
@@ -139,18 +117,14 @@
             <x-responsive-nav-link :href="route('admin.posts.index')" :active="request()->routeIs('admin.posts.*')">
                 {{ __('Posts') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.external-sources.index')" :active="request()->routeIs('admin.external-sources.*')">
-                {{ __('Sources') }}
+            <x-responsive-nav-link :href="route('admin.email-templates.index')" :active="request()->routeIs('admin.email-templates.*')">
+                {{ __('Email Templates') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.category-mappings.index')" :active="request()->routeIs('admin.category-mappings.*')">
-                {{ __('Mappings') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.site-settings.index')" :active="request()->routeIs('admin.site-settings.*')">
-                {{ __('Settings') }}
+            <x-responsive-nav-link :href="route('admin.post-comments.index')" :active="request()->routeIs('admin.post-comments.*')">
+                {{ __('Comments') }}
             </x-responsive-nav-link>
             @if (Auth::user()->role === 'admin')
                 <div class="mt-4 border-t border-gray-200 pt-4">
-                    <p class="px-4 text-xs font-semibold uppercase tracking-wider text-gray-400">{{ __('Site Administration') }}</p>
                     <div class="mt-2 space-y-1">
                         @foreach ($adminLinks as $link)
                             <x-responsive-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route'].'*') || request()->routeIs($link['route'])">
@@ -186,5 +160,6 @@
                 </form>
             </div>
         </div>
+
     </div>
 </nav>

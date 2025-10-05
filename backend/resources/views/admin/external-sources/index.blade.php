@@ -1,10 +1,22 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('External Sources') }}
             </h2>
-            <a href="{{ route('admin.external-sources.create') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('New Source') }}</a>
+            <div class="flex flex-wrap items-center gap-2">
+                <form method="POST" action="{{ route('admin.external-sources.sync-all') }}">
+                    @csrf
+                    <button
+                        type="submit"
+                        class="inline-flex items-center rounded-md border border-brand-base/40 bg-white px-4 py-2 text-sm font-semibold text-brand-base shadow-sm transition hover:bg-brand-base/10"
+                        onclick="return confirm('{{ __('Sync all active sources now?') }}')"
+                    >
+                        {{ __('Sync All Sources') }}
+                    </button>
+                </form>
+                <a href="{{ route('admin.external-sources.create') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">{{ __('New Source') }}</a>
+            </div>
         </div>
     </x-slot>
 

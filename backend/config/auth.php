@@ -27,10 +27,6 @@ return [
     | Of course, a great default configuration has been defined for you
     | which utilizes session storage plus the Eloquent user provider.
     |
-    | All authentication guards have a user provider, which defines how the
-    | users are actually retrieved out of your database or other storage
-    | system used by the application. Typically, Eloquent is utilized.
-    |
     | Supported: "session"
     |
     */
@@ -39,6 +35,11 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+        ],
+
+        'frontend' => [
+            'driver' => 'session',
+            'provider' => 'frontend_users',
         ],
     ],
 
@@ -51,10 +52,6 @@ return [
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | If you have multiple user tables or models you may configure multiple
-    | providers to represent the model / table. These providers may then
-    | be assigned to any extra authentication guards you have defined.
-    |
     | Supported: "database", "eloquent"
     |
     */
@@ -63,6 +60,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'frontend_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\FrontendUser::class,
         ],
 
         // 'users' => [
@@ -94,6 +96,13 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'frontend_users' => [
+            'provider' => 'frontend_users',
+            'table' => 'frontend_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

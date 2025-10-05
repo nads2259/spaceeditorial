@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100 flex flex-col">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -28,9 +28,15 @@
             @endisset
 
             <!-- Page Content -->
-            <main>
+            <main class="flex-1">
                 {{ $slot }}
             </main>
+            <footer class="border-t border-gray-200 bg-white py-4">
+                <div class="max-w-7xl mx-auto flex items-center justify-between px-4 text-xs text-slate-500 sm:px-6 lg:px-8">
+                    <span>&copy; {{ now()->year }} Space Editorial</span>
+                    <span>{{ __('Administrator Console') }}</span>
+                </div>
+            </footer>
         </div>
 
         <script src="{{ asset('js/visit-tracker.js') }}" defer></script>

@@ -18,6 +18,7 @@ function loadTrackingScript(scriptUrl: string, endpoint: string) {
   script.async = true;
   script.setAttribute(TRACKING_SCRIPT_ATTRIBUTE, 'visit-log');
   script.setAttribute('data-tracking-endpoint', endpoint);
+  script.setAttribute('data-click-endpoint', endpoint.replace(/visit$/, 'click'));
   document.head.appendChild(script);
 }
 
@@ -28,6 +29,14 @@ function resolveTrackingConfig(): { scriptUrl: string; endpoint: string } | null
   const base = explicitBase || apiBase;
 
   if (!base) {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin.replace(/\/$/, '');
+      return {
+        scriptUrl: `${origin}/js/visit-tracker.js`,
+        endpoint: `${origin}/tracking/visit`,
+      };
+    }
+
     return null;
   }
 

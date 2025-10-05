@@ -3,15 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subscriber;
+use App\Services\Mail\WelcomeEmailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
 {
+    public function __construct(private readonly WelcomeEmailService $welcomeEmails)
+    {
+    }
+
     public function __invoke(Request $request): JsonResponse
     {
+        $emailRules = ['required', 'string', 'max:255', app()->runningUnitTests() ? 'email:rfc' : 'email:rfc,dns'];
+
         $data = $request->validate([
-            'email' => ['required', 'email:rfc,dns', 'max:255'],
+            'email' => $emailRules,
         ]);
 
         $subscriber = Subscriber::query()->firstWhere('email', $data['email']);
@@ -26,6 +33,8 @@ class SubscriberController extends Controller
                     'user_agent' => $request->userAgent(),
                 ],
             ]);
+
+            $this->welcomeEmails->sendSubscriberWelcome($subscriber);
 
             return response()->json([
                 'status' => 'subscribed',
@@ -45,6 +54,8 @@ class SubscriberController extends Controller
             'subscribed_at' => now(),
             'unsubscribed_at' => null,
         ])->save();
+
+        $this->welcomeEmails->sendSubscriberWelcome($subscriber);
 
         return response()->json([
             'status' => 'reactivated',

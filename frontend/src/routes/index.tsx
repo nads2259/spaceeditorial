@@ -4,6 +4,12 @@ import HomePage from '../pages/HomePage';
 import SearchPage from '../pages/SearchPage';
 import CategoryPage from '../pages/CategoryPage';
 import BlogDetailPage from '../pages/BlogDetailPage';
+import ContactPage from '../pages/ContactPage';
+import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
+import SubscribePage from '../pages/SubscribePage';
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage';
+import TermsPage from '../pages/TermsPage';
 
 function AppRoutes() {
   return (
@@ -14,6 +20,12 @@ function AppRoutes() {
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
         <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/subscribe" element={<SubscribePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
       </Route>
     </Routes>
   );

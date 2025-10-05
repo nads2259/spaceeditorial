@@ -1,26 +1,47 @@
 (function () {
-    function resolveEndpoint() {
+    function resolveEndpointDetails() {
         try {
             const script = document.currentScript;
             if (script && script.src) {
-                const url = new URL(script.getAttribute('data-tracking-endpoint') || script.src);
-                if (script.getAttribute('data-tracking-endpoint')) {
-                    return script.getAttribute('data-tracking-endpoint');
+                const baseEndpoint = script.getAttribute('data-tracking-endpoint');
+                const clickEndpoint = script.getAttribute('data-click-endpoint');
+
+                if (baseEndpoint) {
+                    return {
+                        visit: baseEndpoint,
+                        click: clickEndpoint || baseEndpoint.replace(/visit$/, 'click'),
+                    };
                 }
 
-                url.pathname = (script.getAttribute('data-tracking-path') || '/tracking/visit').replace(/^\/+/, '/');
+                const url = new URL(script.src);
                 url.search = '';
                 url.hash = '';
-                return url.toString();
+                const visitPath = (script.getAttribute('data-tracking-path') || '/tracking/visit').replace(/^\/+/, '/');
+                const clickPath = (script.getAttribute('data-tracking-click-path') || '/tracking/click').replace(/^\/+/, '/');
+
+                const visitUrl = new URL(url.toString());
+                visitUrl.pathname = visitPath;
+
+                const clickUrl = new URL(url.toString());
+                clickUrl.pathname = clickPath;
+
+                return {
+                    visit: visitUrl.toString(),
+                    click: clickUrl.toString(),
+                };
             }
         } catch (error) {
-            // fall back to window location
+            // fall back below
         }
 
-        return `${window.location.origin.replace(/\/$/, '')}/tracking/visit`;
+        const origin = window.location.origin.replace(/\/$/, '');
+        return {
+            visit: `${origin}/tracking/visit`,
+            click: `${origin}/tracking/click`,
+        };
     }
 
-    const endpoint = resolveEndpoint();
+    const endpoints = resolveEndpointDetails();
     const storageKey = 'se_visitor_id';
     const sessionKey = 'se_session_id';
 
@@ -61,7 +82,25 @@
         }
     }
 
-    function sendPayload() {
+    function resolveFrontendUserId() {
+        try {
+            if (typeof window.__frontendUserId !== 'undefined' && window.__frontendUserId !== null) {
+                return window.__frontendUserId;
+            }
+
+            const meta = document.querySelector('meta[name="frontend-user-id"]');
+            if (meta && meta.content) {
+                const parsed = parseInt(meta.content, 10);
+                return Number.isNaN(parsed) ? null : parsed;
+            }
+        } catch (error) {
+            // ignore detection errors
+        }
+
+        return null;
+    }
+
+    function sendVisit() {
         if (!('fetch' in window)) {
             return;
         }
@@ -79,21 +118,104 @@
             },
         };
 
-        fetch(endpoint, {
+        const frontendUserId = resolveFrontendUserId();
+        if (frontendUserId) {
+            payload.frontend_user_id = frontendUserId;
+        }
+
+        fetch(endpoints.visit, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
             keepalive: true,
-        }).catch(() => {
+        }).catch(function () {
+            // Ignore logging issues
+        });
+    }
+
+    function clickLabelFromElement(element) {
+        if (!element) {
+            return null;
+        }
+
+        const explicit = element.getAttribute('data-track-label');
+        if (explicit) {
+            return explicit;
+        }
+
+        if (element.textContent) {
+            const text = element.textContent.trim().replace(/\s+/g, ' ');
+            if (text.length) {
+                return text.slice(0, 120);
+            }
+        }
+
+        if (element.getAttribute('aria-label')) {
+            return element.getAttribute('aria-label');
+        }
+
+        if (element.getAttribute('title')) {
+            return element.getAttribute('title');
+        }
+
+        return element.tagName.toLowerCase();
+    }
+
+    function sendClick(event) {
+        if (!('fetch' in window)) {
+            return;
+        }
+
+        const link = event.target.closest('a, button, [data-track-click]');
+        if (!link) {
+            return;
+        }
+
+        const payload = {
+            visitor_id: getVisitorId(),
+            session_id: getSessionId(),
+            url: link.href || window.location.href,
+            label: clickLabelFromElement(link),
+            context: {
+                tag: link.tagName.toLowerCase(),
+                path: window.location.pathname,
+            },
+        };
+
+        const frontendUserId = resolveFrontendUserId();
+        if (frontendUserId) {
+            payload.frontend_user_id = frontendUserId;
+        }
+
+        if (navigator.sendBeacon) {
+            try {
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                navigator.sendBeacon(endpoints.click, blob);
+                return;
+            } catch (error) {
+                // fallback to fetch below
+            }
+        }
+
+        fetch(endpoints.click, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            keepalive: true,
+        }).catch(function () {
             // Ignore logging issues
         });
     }
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        sendPayload();
+        sendVisit();
     } else {
-        document.addEventListener('DOMContentLoaded', sendPayload, { once: true });
+        document.addEventListener('DOMContentLoaded', sendVisit, { once: true });
     }
+
+    document.addEventListener('click', sendClick, true);
 })();
