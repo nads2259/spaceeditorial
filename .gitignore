@@ -17,7 +17,6 @@ gitpod.yml
 .DS_Store
 
 # Laravel / PHP (for future backend)
-backend/vendor/
 backend/storage/
 backend/bootstrap/cache/
 backend/.env
