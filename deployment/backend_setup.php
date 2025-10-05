@@ -12,6 +12,15 @@ foreach ($requirements as $binary) {
     ensureCommand($binary);
 }
 
+$expectedFiles = [
+    'backend/composer.json',
+    'backend/artisan',
+    'backend/package.json',
+    'backend/vite.config.js',
+];
+
+validateFiles($expectedFiles);
+
 $steps = [
     ['Installing Composer dependencies', ['composer', 'install', '--no-dev', '--optimize-autoloader'], 'backend'],
     ['Generating app key (safe if it already exists)', ['php', 'artisan', 'key:generate', '--force'], 'backend'],
@@ -34,6 +43,24 @@ function ensureCommand(string $command): void
 {
     if (! commandExists($command)) {
         fwrite(STDERR, "[ERROR] Required command '{$command}' is not available. Install it or adjust PATH.\n");
+        exit(1);
+    }
+}
+
+function validateFiles(array $paths): void
+{
+    $missing = [];
+    foreach ($paths as $path) {
+        if (! file_exists($path)) {
+            $missing[] = $path;
+        }
+    }
+
+    if ($missing !== []) {
+        fwrite(STDERR, "[ERROR] The following required files are missing:\n");
+        foreach ($missing as $path) {
+            fwrite(STDERR, "  - {$path}\n");
+        }
         exit(1);
     }
 }
