@@ -9,6 +9,7 @@ If your hosting environment does not expose SSH or direct shell access, you can 
 3. Run the commands listed in [`backend_setup.php`](backend_setup.php) via `php backend_setup.php` from your local terminal. They install Composer dependencies, run migrations, cache configuration, and build backend assets.
 4. Zip the entire `backend/` directory (including the newly created `vendor/` folder and `public/build/` assets) and upload it to the shared host. Ensure the hosting control panel points the document root at `backend/public` or use the `.htaccess` override documented in the main README.
 5. After uploading, double check that the writable directories (`storage/`, `bootstrap/cache/`) have the correct permissions via the hosting control panel.
+6. Set `DEPLOY_WEB_TOKEN` in `backend/.env` to a long random string. This protects the HTTP deployment script described below.
 
 ### Triggering Migrations Without Shell
 
@@ -26,5 +27,6 @@ If the host will not run the Artisan commands for you, open a support ticket and
 - Visit `/admin/email-broadcasts` to ensure the metrics row and broadcast history load.
 - Purge CDN or hosting caches so the new `visit-tracker.js` and frontend assets take effect.
 - For future releases, run `php deployment/production_update.php` on the server (or via hosting support) to validate requirements and apply pending migrations without manual SQL access.
+- If CLI access is unavailable, call `https://your-site/deploy.php?token=YOUR_TOKEN` (replace `YOUR_TOKEN` with the value you set in `DEPLOY_WEB_TOKEN`). The script runs environment checks, applies pending migrations, and refreshes caches. Remove or rename `deploy.php` after use.
 
 Keep this directory (`deployment/`) updated whenever the deployment flow changes so non-SSH environments remain supported.
