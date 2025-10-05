@@ -166,6 +166,8 @@ When the project lives inside a folder on shared hosting (for example `public_ht
 - Clear and cache Laravel configuration after every `.env` edit: `php artisan config:clear && php artisan config:cache`.
 - Confirm that `/docs/index.html` (internal handbook) still resolves in the hosted environment. If the docs live outside `backend/public`, replicate or symlink them under `backend/public/docs/` so the rewrite rules can reach them.
 
+If the host does not offer shell access, run `php deployment/backend_setup.php` and `php deployment/frontend_build.php` on a local machine, then upload the resulting artifacts (backend with `vendor/`, frontend `dist/`) via SFTP or the hosting file manager. Each script begins by checking required tooling (`composer`, `npm`, `node`) so missing dependencies are flagged early. The helper scripts live in the `deployment/` directory alongside additional guidance.
+
 ### Post-Deployment Checklist
 
 - Run `php artisan migrate --force` after every release that ships new migrations.
