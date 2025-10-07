@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_FILENAME} -d [OR]
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Ensure admin and backend endpoints keep hitting Laravel
+    RewriteCond %{REQUEST_URI} ^/(api|admin|login|logout|password|email|dashboard|profile|sanctum|storage) [NC]
+    RewriteRule ^ index.php [L]
+
+    # Non-GET requests should be handled by Laravel
+    RewriteCond %{REQUEST_METHOD} !GET
+    RewriteRule ^ index.php [L]
+
+    # Serve the frontend SPA for everything else
+    RewriteRule ^ frontend/index.html [L]
+</IfModule>

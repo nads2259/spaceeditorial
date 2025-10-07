@@ -21,7 +21,7 @@ function AppRoutes() {
         <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/subscribe" element={<SubscribePage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

@@ -123,7 +123,7 @@ function RegisterPage() {
 
             <p className="text-sm text-slate-500">
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-brand-base hover:underline">
+              <Link to="/signin" className="font-semibold text-brand-base hover:underline">
                 Sign in
               </Link>
             </p>
