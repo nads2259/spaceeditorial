@@ -203,3 +203,44 @@ Run commands from the `backend/` directory unless noted otherwise.
 3. Open a pull request referencing the related issue. 
 
 Note: Will add later
+
+## Docker Orchestration
+
+The repository now ships with a production-like Docker Compose stack that runs the Laravel API/admin, React frontend, MySQL, Redis, a persistent queue worker, and the scheduler loop.
+
+### 1. Configure environment
+- Copy `docker/.env.example` to `.env` in the repository root and adjust values as needed.
+- Generate an application key: `docker compose run --rm backend-app php artisan key:generate --show`. Copy the value into the `APP_KEY` entry inside `.env` (rerun without `--show` after the first boot if you want it written automatically).
+- Update `VITE_API_BASE_URL`, `VITE_TRACKING_BASE_URL`, and `VITE_API_TOKEN` so the frontend can talk to the API. The API token comes from the admin panel (Users → Edit → **Regenerate API token**).
+
+### 2. Build and start
+```bash
+docker compose build
+docker compose up -d
+```
+Run database migrations (and optional seed data) once the containers are healthy:
+```bash
+docker compose exec backend-app php artisan migrate
+# optional demo data
+# docker compose exec backend-app php artisan db:seed
+```
+Link the public storage directory so uploaded assets are reachable:
+```bash
+docker compose exec backend-app php artisan storage:link
+```
+
+### 3. Service overview
+- `db` – MySQL 8.0 with persistent volume `db-data`.
+- `redis` – Redis 7 for cache and queue broadcasts.
+- `backend-app` – PHP-FPM container with composer dependencies and built Blade assets.
+- `backend-web` – Nginx reverse proxy exposing the Laravel app on `http://localhost:8080`.
+- `backend-queue` – Dedicated queue worker using the database-backed queue connection.
+- `backend-scheduler` – Executes `php artisan schedule:run` every 60 seconds for sync and housekeeping commands.
+- `frontend-app` – Nginx container serving the pre-built Vite bundle on `http://localhost:3000`.
+
+### 4. Common commands
+- Tail logs: `docker compose logs -f backend-web`
+- Rebuild after dependency changes: `docker compose build backend-app frontend-app`
+- Run one-off Artisan tasks: `docker compose exec backend-app php artisan <command>`
+
+Stop the stack with `docker compose down` (add `--volumes` to reset MySQL/Redis data). When deploying to production, build the images and push them to your registry, then run the same Compose file (or translate it into your orchestrator of choice).
