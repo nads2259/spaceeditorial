@@ -16,12 +16,19 @@ $tables = [
     'posts',
     'site_settings',
     'users',
+    'external_sources',
 ];
 
 $snapshot = [];
 
 foreach ($tables as $table) {
-    $rows = DB::table($table)->orderBy('id')->get()->map(static function ($row) {
+    $query = DB::table($table)->orderBy('id');
+
+    if ($table === 'external_sources') {
+        $query->whereNull('deleted_at');
+    }
+
+    $rows = $query->get()->map(static function ($row) {
         return collect((array) $row)
             ->map(static function ($value) {
                 if ($value instanceof \DateTimeInterface) {
@@ -34,6 +41,8 @@ foreach ($tables as $table) {
 
     $snapshot[$table] = $rows;
 }
+
+ksort($snapshot);
 
 $export = exportArray($snapshot);
 

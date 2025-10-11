@@ -27,6 +27,7 @@ return new class extends Migration {
             'categories',
             'site_settings',
             'users',
+            'external_sources',
         ];
 
         Schema::disableForeignKeyConstraints();

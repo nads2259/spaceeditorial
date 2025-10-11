@@ -22,6 +22,7 @@ class DatabaseSnapshotSeeder extends Seeder
             'categories',
             'site_settings',
             'users',
+            'external_sources',
         ];
 
         foreach ($tablesToClear as $table) {
@@ -32,6 +33,7 @@ class DatabaseSnapshotSeeder extends Seeder
 
         $this->seedTable('categories', $snapshot['categories'] ?? []);
         $this->seedTable('subcategories', $snapshot['subcategories'] ?? []);
+        $this->seedTable('external_sources', $snapshot['external_sources'] ?? []);
         $this->seedTable('posts', $snapshot['posts'] ?? []);
         $this->seedTable('site_settings', $snapshot['site_settings'] ?? []);
         $this->seedTable('users', $snapshot['users'] ?? []);
